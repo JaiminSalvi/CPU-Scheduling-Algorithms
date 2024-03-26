@@ -1,3 +1,4 @@
+
 header h1 {
   font-size: 70px;
   font-weight: 600;
@@ -7,4 +8,126 @@ header h1 {
   color: transparent;
   background-clip: text;
   -webkit-background-clip: text;
+}
+
+.content{
+  margin-top: 70px !important;
+}
+.input{
+  width: 50%;
+}
+.field{
+  width: 25%;
+  font-size: 20px;
+  font-weight: 600;
+}
+.field-input{
+  width: 75%;
+}
+.field-input input{
+  font-size: 15px;
+  width: 70%;
+}
+.btn-primary{
+  margin-left: 10px;
+}
+@media (max-width:576px) {
+    .input{
+      /* flex-direction: column; */
+      justify-content: center;
+      width: 100%;
+    }
+    .field{
+      text-align: center;
+      width: 50%;
+    }
+    .field-input input{
+      width: 100%;
+    }
+    #result1{
+      justify-self: start !important;
+    }
+    .result{
+      width: 100% !important;
+    }
+    .result p{
+      width: 100% !important;
+    }
+}
+.table-container {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+
+table {
+  width: 100%;
+  border: 1px solid #dddddd;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  text-align: center ;
+  /* overflow-x: scroll; */
+}
+th, td {
+  border: 1px solid rgb(221, 214, 214) !important;
+  text-align: center;
+  padding: 8px;
+}
+tr{
+  
+  border: 1px solid #dddddd;
+}
+th {
+  background-color: #ebe5e5;
+}
+.result{
+  width:50%;
+}
+.result p{
+  font-size: 20px;
+  font-weight: 700;
+}
+#table1{
+  overflow-x: scroll;
+  overflow: scroll;
+}
+/* @media only screen and (max-width: 600px) {
+  table {
+      border: 0;
+  }
+  table thead {
+      display: none;
+  }
+  table, table tbody, table tr, table td {
+      display: block;
+      width: 100%;
+  }
+  table tr {
+      margin-bottom: 15px;
+  }
+  table td {
+      text-align: left;
+      padding: 10px;
+      vertical-align: middle;
+      border: 1px solid #dddddd;
+  }
+  table td:before {
+      content: attr(data-label);
+      float: left;
+      font-weight: bold;
+      text-transform: uppercase;
+  }
+} */
+
+
+#boxes{
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
 }
