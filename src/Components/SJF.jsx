@@ -2,19 +2,26 @@
 import React, { useState } from "react";
 import { MdRemoveCircle } from "react-icons/md";
 
-const Fcfs = () => {
-  const [tasks, setTasks] = useState([]);
+const Sjf = () => {
+  const [tasks, setTasks] = useState([
+    { processId: "1", arrivalTime: "1", burstTime: "4" },
+    { processId: "2", arrivalTime: "9", burstTime: "5" },
+    { processId: "3", arrivalTime: "15", burstTime: "3" },
+  ]);
+
   const [processId, setProcessId] = useState("");
   const [arrivalTime, setArrivalTime] = useState("");
   const [burstTime, setBurstTime] = useState("");
   const [flag, setFlag] = useState(false);
-  const [averageCompletionTime, setAverageCompletionTime] = useState(null);
   const [averageTurnaroundTime, setAverageTurnaroundTime] = useState(null);
   const [averageWaitingTime, setAverageWaitingTime] = useState(null);
+  const [averageCompletionTime, setAverageCompletionTime] = useState(null);
   const [completionTimes, setCompletionTimes] = useState([]);
   const [turnaroundTimes, setTurnaroundTimes] = useState([]);
   const [waitingTimes, setWaitingTimes] = useState([]);
   const [indexArr, setIndex] = useState([]);
+  const [pairsArray, setPairsArray] = useState([]);
+  const [boxes, setBoxes] = useState([]);
 
   const handleAddTask = () => {
     if (tasks.some((item) => item.processId === processId)) {
@@ -40,96 +47,140 @@ const Fcfs = () => {
     setProcessId("");
     setArrivalTime("");
     setBurstTime("");
-    setTasks([]);
-    setFlag(false);
-    setAverageTurnaroundTime(null);
-    setAverageWaitingTime(null);
-    setCompletionTimes([]);
-    setTurnaroundTimes([]);
-    setWaitingTimes([]);
-    setIndex([]);
+    // setTasks([]);
+    // setFlag(false);
+    // setAverageTurnaroundTime(null);
+    // setAverageWaitingTime(null);
+    // setCompletionTimes([]);
+    // setTurnaroundTimes([]);
+    // setWaitingTimes([]);
+    // setIndex([]);
   };
-  const [pairsArray, setPairsArray] = useState([]);
-
-  const runTask = () => {
-    let sortedTasks = [...tasks].sort((a, b) => a.arrivalTime - b.arrivalTime);
-    let currentTime = 0;
-    let totalTurnaroundTime = 0;
-    let totalWaitingTime = 0;
-    let completionTimesArr = [];
-    let turnaroundTimesArr = [];
-    let waitingTimesArr = [];
-    let indexArr = [];
-    let process = [];
-    console.log(sortedTasks);
-    let tempPairsArray = []; // Temporary array to accumulate pairs
-    let c = 0;
-    sortedTasks.forEach((task, index) => {
-      let completionTime = currentTime + parseInt(task.burstTime);
-      // Add pair to temporary array
-      if (parseInt(task.arrivalTime) > currentTime) {
-        completionTime += parseInt(task.arrivalTime) - currentTime;
-        const p = {
-          process: null,
-          burstTime: parseInt(task.arrivalTime) - currentTime,
-        };
-        tempPairsArray.push(p); // Add null pair to temporary array
-      }
-      const pair = { process: task.processId, burstTime: task.burstTime };
-      tempPairsArray.push(pair);
-      completionTimesArr.push(completionTime);
-      c += completionTime;
-      indexArr.push(parseInt(task.processId) - 1);
-      turnaroundTimesArr.push(completionTime - parseInt(task.arrivalTime));
-      waitingTimesArr.push(
-        completionTime - parseInt(task.arrivalTime) - parseInt(task.burstTime)
-      );
-
-      totalTurnaroundTime += completionTime - parseInt(task.arrivalTime);
-      totalWaitingTime +=
-        completionTime - parseInt(task.arrivalTime) - parseInt(task.burstTime);
-
-      currentTime = completionTime;
-    });
-    setPairsArray(tempPairsArray); // Update pairsArray after the loop
-    let arr = [];
-    for (let i = 0; i < indexArr.length; i++) {
-      arr[indexArr[i]] = i;
-    }
-    console.log(arr);
-    console.log(sortedTasks);
-    console.log(completionTimesArr);
-    console.log(turnaroundTimesArr);
-    console.log(indexArr);
-    setCompletionTimes(completionTimesArr);
-    setTurnaroundTimes(turnaroundTimesArr);
-    setWaitingTimes(waitingTimesArr);
-    setIndex(arr);
-    setAverageCompletionTime((c / tasks.length).toFixed(5));
-    setAverageTurnaroundTime((totalTurnaroundTime / tasks.length).toFixed(5));
-    setAverageWaitingTime((totalWaitingTime / tasks.length).toFixed(5));
-    setFlag(true);
-    // handleClick();
-  };
-
-  const [num, setNum] = useState(0);
-  const [boxes, setBoxes] = useState([]);
 
   const getColorForProcess = (processId) => {
-    // Generate a color based on the process ID
+    if (processId === -1) {
+      return "#fff";
+    }
     const hue = (parseInt(processId) * 50) % 360;
     return `hsl(${hue}, 70%, 70%)`;
   };
 
-  // Inside your handleClick function:
+  const runTask = () => {
+    let sortedTasks = [...tasks].sort((a, b) => a.arrivalTime - b.arrivalTime); // Sort by burst time for SJF
+    let visited = [];
+    let queue = [];
+    let completionTime = 0;
+    let process = [];
+    let arrival = [];
+    let burst = [];
+    sortedTasks.forEach((task, index) => {
+      process.push(parseInt(task.processId));
+      arrival.push(parseInt(task.arrivalTime));
+      burst.push(parseInt(task.burstTime));
+    });
+    let tempPairsArray = [];
+    let temp = [];
+    temp.push(0);
+    for (let i = 0; i < process.length; i++) {
+      let p = -1;
+      let at = 1000000000;
+      let bt = 1000000000;
+      //   let temp = [];
+      let mini = 1000000000;
+      let incoming = temp[temp.length - 1];
+      //   console.log(temp);
+      let idx = -1;
+      for (let j = 0; j < process.length; j++) {
+        if (arrival[j] <= incoming && arrival[j] != -1) {
+          if (burst[j] < bt) {
+            p = process[j];
+            at = arrival[j];
+            bt = burst[j];
+            idx = j;
+          } else if (burst[j] === bt) {
+            if (at > arrival[j]) {
+              p = process[j];
+              at = arrival[j];
+              bt = burst[j];
+              idx = j;
+            } else if (at === arrival[j]) {
+              if (p > process[j]) {
+                p = process[j];
+                at = arrival[j];
+                bt = burst[j];
+                idx = j;
+              }
+            }
+          }
+        }
+        if (arrival[j] != -1) {
+          if (mini > arrival[j]) {
+            mini = arrival[j];
+          }
+        }
+      }
+      if (idx == -1) {
+        console.log("mini" + mini);
+        temp.push(mini);
+        tempPairsArray.push({ at: incoming, bt: mini - incoming, p: null });
+        i--;
+      } else {
+        console.log("one terminated------------------");
+        console.log(at, bt, p);
+        temp.push(bt + incoming);
+        // visited[] = 1;
+        arrival[idx] = -1;
+        process[idx] = -1;
+        burst[idx] = -1;
+        tempPairsArray.push({ at, bt, p });
+      }
+    }
+    // console.log(temp);
+    console.log(temp);
+    console.log(tempPairsArray);
+    setPairsArray(tempPairsArray);
+    let completion = [];
+    let c = 0;
+    let turn = [];
+    for (let i = 0; i < tempPairsArray.length; i++) {
+      c += tempPairsArray[i].bt;
+      completion.push(c);
+    }
+    let pro = [];
+    let wait = [];
+    for (let i = 0; i < tempPairsArray.length; i++) {
+      turn.push(completion[i] - tempPairsArray[i].at);
+      pro[tempPairsArray[i].p] = i;
+      wait.push(completion[i] - tempPairsArray[i].at - tempPairsArray[i].bt);
+    }
+    let sum1 = 0,
+      sum2 = 0,
+      sum3 = 0;
+    for (let i = 0; i < tempPairsArray.length; i++) {
+      sum1 += completion[i];
+      sum2 += turn[i];
+      sum3 += wait[i];
+    }
+
+    console.log(completion);
+    setCompletionTimes(completion);
+    setIndex(pro);
+    setTurnaroundTimes(turn);
+    setWaitingTimes(wait);
+    setAverageCompletionTime((sum1 / tempPairsArray.length).toFixed(5));
+    setAverageTurnaroundTime((sum2 / tempPairsArray.length).toFixed(5));
+    setAverageWaitingTime((sum3 / tempPairsArray.length).toFixed(5));
+    setFlag(true);
+  };
+
   const handleClick = async () => {
     console.log(pairsArray);
     let tempBoxes = [];
     for (let i = 0; i < pairsArray.length; i++) {
       const pair = pairsArray[i];
-      const color = getColorForProcess(pair.process); // Get color for the current process
+      const color = getColorForProcess(pair.p - 1); // Get color for the current process
       // Use async/await with setTimeout to delay the creation of each box
-      for (let j = 0; j < parseInt(pair.burstTime); j++) {
+      for (let j = 0; j < parseInt(pair.bt); j++) {
         await new Promise((resolve) => {
           setTimeout(() => {
             const boxStyle = {
@@ -145,10 +196,10 @@ const Fcfs = () => {
             // Create box elements using JSX
             const boxElement = (
               <div className="d-flex flex-column" key={`box-${i}-${j}`}>
-                {pair.process === null ? (
+                {pair.p === null ? (
                   <div style={boxStyle}></div>
                 ) : (
-                  <div style={boxStyle}>{`P${pair.process}`}</div>
+                  <div style={boxStyle}>{`P${pair.p}`}</div>
                 )}
                 <div style={boxStyle}>1</div>
               </div>
@@ -168,7 +219,7 @@ const Fcfs = () => {
   return (
     <>
       <div className="container mt-4">
-        <h1 className="text-center">First Come First Served Scheduling</h1>
+        <h1 className="text-center">Shortest Job First Scheduling</h1>
         <div className="content d-flex justify-content-center align-items-center flex-column gap-4">
           <div className="input d-flex justify-content-center align-items-center">
             <div className="field">Process :</div>
@@ -238,15 +289,10 @@ const Fcfs = () => {
                   <td>{task.processId}</td>
                   <td>{task.arrivalTime}</td>
                   <td>{task.burstTime}</td>
-                  <td>
-                    {completionTimes[indexArr[parseInt(task.processId) - 1]]}
-                  </td>
-                  <td>
-                    {turnaroundTimes[indexArr[parseInt(task.processId) - 1]]}
-                  </td>
-                  <td>
-                    {waitingTimes[indexArr[parseInt(task.processId) - 1]]}
-                  </td>
+                  {/* Access completion time, turnaround time, and waiting time directly from pairsArray */}
+                  <td>{completionTimes[indexArr[index + 1]]}</td>
+                  <td>{turnaroundTimes[indexArr[index + 1]]}</td>
+                  <td>{waitingTimes[indexArr[index + 1]]}</td>
                   <td>
                     <button
                       style={{ border: "none", background: "white" }}
@@ -316,4 +362,4 @@ const Fcfs = () => {
   );
 };
 
-export default Fcfs;
+export default Sjf;
