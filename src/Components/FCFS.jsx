@@ -3,7 +3,11 @@ import React, { useState } from "react";
 import { MdRemoveCircle } from "react-icons/md";
 
 const Fcfs = () => {
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState([
+    { processId: "1", arrivalTime: "0", burstTime: "4" },
+    { processId: "2", arrivalTime: "8", burstTime: "2" },
+    { processId: "3", arrivalTime: "15", burstTime: "7" },
+  ]);
   const [processId, setProcessId] = useState("");
   const [arrivalTime, setArrivalTime] = useState("");
   const [burstTime, setBurstTime] = useState("");
