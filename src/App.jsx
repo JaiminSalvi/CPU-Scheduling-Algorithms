@@ -1,6 +1,9 @@
 import "./App.css";
 import Fcfs from "./Components/FCFS";
+import Roundrobin from "./Components/RoundRobin";
 import Sjf from "./Components/SJF";
+import Srfc from "./Components/SRTF";
+
 import { useState } from "react";
 
 function App() {
@@ -26,10 +29,24 @@ function App() {
           <h2>Shortest Job First (SJF)</h2>
           <button onClick={() => setSelectedAlgorithm("SJF")}>Select</button>
         </div>
+        <div
+          className={`card ${selectedAlgorithm === "SRTF" ? "selected" : ""}`}
+        >
+          <h2>Shortest Remaining Time First (SRTF)</h2>
+          <button onClick={() => setSelectedAlgorithm("SRTF")}>Select</button>
+        </div>
+        <div
+          className={`card ${selectedAlgorithm === "SRTF" ? "selected" : ""}`}
+        >
+          <h2>Round Robin (RR)</h2>
+          <button onClick={() => setSelectedAlgorithm("RR")}>Select</button>
+        </div>
       </div>
 
       {selectedAlgorithm === "FCFS" && <Fcfs />}
       {selectedAlgorithm === "SJF" && <Sjf />}
+      {selectedAlgorithm === "SRTF" && <Srfc />}
+      {selectedAlgorithm === "RR" && <Roundrobin />}
     </div>
   );
 }

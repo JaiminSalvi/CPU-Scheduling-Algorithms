@@ -1,8 +1,9 @@
+/* eslint-disable no-constant-condition */
 /* eslint-disable no-unused-vars */
 import React, { useState } from "react";
 import { MdRemoveCircle } from "react-icons/md";
 
-const Sjf = () => {
+const Srtf = () => {
   const [tasks, setTasks] = useState([
     { processId: "1", arrivalTime: "0", burstTime: "7" },
     { processId: "2", arrivalTime: "1", burstTime: "5" },
@@ -51,14 +52,6 @@ const Sjf = () => {
     setProcessId("");
     setArrivalTime("");
     setBurstTime("");
-    // setTasks([]);
-    // setFlag(false);
-    // setAverageTurnaroundTime(null);
-    // setAverageWaitingTime(null);
-    // setCompletionTimes([]);
-    // setTurnaroundTimes([]);
-    // setWaitingTimes([]);
-    // setIndex([]);
   };
 
   const getColorForProcess = (processId) => {
@@ -70,6 +63,12 @@ const Sjf = () => {
   };
 
   const runTask = () => {
+    let burst_temp = [];
+    let arrrival_temp = [];
+    for (let i = 0; i < tasks.length; i++) {
+      burst_temp.push(parseInt(tasks[i].burstTime));
+      arrrival_temp.push(parseInt(tasks[i].arrivalTime));
+    }
     let sortedTasks = [...tasks].sort((a, b) => a.arrivalTime - b.arrivalTime); // Sort by burst time for SJF
     let visited = [];
     let queue = [];
@@ -83,17 +82,19 @@ const Sjf = () => {
       burst.push(parseInt(task.burstTime));
     });
     let tempPairsArray = [];
+
     let temp = [];
     temp.push(0);
-    for (let i = 0; i < process.length; i++) {
+    let len = 0;
+    while (len < process.length) {
       let p = -1;
       let at = 1000000000;
       let bt = 1000000000;
       //   let temp = [];
       let mini = 1000000000;
       let incoming = temp[temp.length - 1];
-      //   console.log(temp);
       let idx = -1;
+      //   console.log(temp);
       for (let j = 0; j < process.length; j++) {
         if (arrival[j] <= incoming && arrival[j] != -1) {
           if (burst[j] < bt) {
@@ -101,13 +102,13 @@ const Sjf = () => {
             at = arrival[j];
             bt = burst[j];
             idx = j;
-          } else if (burst[j] === bt) {
+          } else if (burst[j] == bt) {
             if (at > arrival[j]) {
               p = process[j];
               at = arrival[j];
               bt = burst[j];
               idx = j;
-            } else if (at === arrival[j]) {
+            } else if (at == arrival[j]) {
               if (p > process[j]) {
                 p = process[j];
                 at = arrival[j];
@@ -125,20 +126,77 @@ const Sjf = () => {
       }
       if (idx == -1) {
         console.log("mini" + mini);
-        temp.push(mini);
-        tempPairsArray.push({ at: incoming, bt: mini - incoming, p: null });
-        i--;
+        temp.push(incoming + 1);
+        tempPairsArray.push({ at: incoming, bt: 1, p: null });
+        // i--;
       } else {
         console.log("one terminated------------------");
         console.log(at, bt, p);
-        temp.push(bt + incoming);
-        // visited[] = 1;
-        arrival[idx] = -1;
-        process[idx] = -1;
-        burst[idx] = -1;
-        tempPairsArray.push({ at, bt, p });
+        temp.push(incoming + 1);
+        burst[idx] = burst[idx] - 1;
+        if (burst[idx] == 0) {
+          // visited[] = 1;
+          arrival[idx] = -1;
+          process[idx] = -1;
+          len++;
+        }
+        tempPairsArray.push({ at, bt: 1, p });
       }
     }
+    // for (let i = 0; i < process.length; i++) {
+    //   let p = -1;
+    //   let at = 1000000000;
+    //   let bt = 1000000000;
+    //   //   let temp = [];
+    //   let mini = 1000000000;
+    //   let incoming = temp[temp.length - 1];
+    //   //   console.log(temp);
+    //   let idx = -1;
+    //   for (let j = 0; j < process.length; j++) {
+    //     if (arrival[j] <= incoming && arrival[j] != -1) {
+    //       if (burst[j] < bt) {
+    //         p = process[j];
+    //         at = arrival[j];
+    //         bt = burst[j];
+    //         idx = j;
+    //       } else if (burst[j] === bt) {
+    //         if (at > arrival[j]) {
+    //           p = process[j];
+    //           at = arrival[j];
+    //           bt = burst[j];
+    //           idx = j;
+    //         } else if (at === arrival[j]) {
+    //           if (p > process[j]) {
+    //             p = process[j];
+    //             at = arrival[j];
+    //             bt = burst[j];
+    //             idx = j;
+    //           }
+    //         }
+    //       }
+    //     }
+    //     if (arrival[j] != -1) {
+    //       if (mini > arrival[j]) {
+    //         mini = arrival[j];
+    //       }
+    //     }
+    //   }
+    //   if (idx == -1) {
+    //     console.log("mini" + mini);
+    //     temp.push(mini);
+    //     tempPairsArray.push({ at: incoming, bt: mini - incoming, p: null });
+    //     i--;
+    //   } else {
+    //     console.log("one terminated------------------");
+    //     console.log(at, bt, p);
+    //     temp.push(bt + incoming);
+    //     // visited[] = 1;
+    //     arrival[idx] = -1;
+    //     process[idx] = -1;
+    //     burst[idx] = -1;
+    //     tempPairsArray.push({ at, bt, p });
+    //   }
+    // }
     // console.log(temp);
     console.log(temp);
     console.log(tempPairsArray);
@@ -146,39 +204,53 @@ const Sjf = () => {
     let completion = [];
     let c = 0;
     let turn = [];
-    let c1 = 0;
-    for (let i = 0; i < tempPairsArray.length; i++) {
-      if (tempPairsArray[i].p === null) {
-        c1 += tempPairsArray[i].bt;
+    let visited1 = [];
+    for (let i = tempPairsArray.length - 1; i >= 0; i--) {
+      // c += tempPairsArray[i].bt;
+      // completion.push(c);
+      if (tempPairsArray[i].p == null) {
+        c++;
+        continue;
+      } else {
+        if (visited1.includes(tempPairsArray[i].p)) {
+          continue;
+        } else {
+          visited1.push(tempPairsArray[i].p);
+          completion[tempPairsArray[i].p - 1] = i + 1;
+          // arrival[tempPairsArray[i].p]=tempPairsArray[i].at;
+        }
       }
-      c += tempPairsArray[i].bt;
-      completion.push(c);
     }
     let pro = [];
     let wait = [];
-    for (let i = 0; i < tempPairsArray.length; i++) {
-      turn.push(completion[i] - tempPairsArray[i].at);
-      pro[tempPairsArray[i].p] = i;
-      wait.push(completion[i] - tempPairsArray[i].at - tempPairsArray[i].bt);
+    console.log("burst time-----------");
+    console.log(tempPairsArray);
+    console.log(completion);
+
+    for (let i = 0; i < completion.length; i++) {
+      turn.push(completion[i] - arrrival_temp[i]);
+      pro[i + 1] = i;
+      wait.push(completion[i] - arrrival_temp[i] - burst_temp[i]);
     }
     let sum1 = 0,
       sum2 = 0,
       sum3 = 0;
-    for (let i = 0; i < tempPairsArray.length; i++) {
+    for (let i = 0; i < completion.length; i++) {
       sum1 += completion[i];
       sum2 += turn[i];
       sum3 += wait[i];
     }
 
-    console.log(completion);
+    // console.log(completion);
+    console.log(wait);
     setCompletionTimes(completion);
     setIndex(pro);
     setTurnaroundTimes(turn);
     setWaitingTimes(wait);
-    setAverageCompletionTime((sum1 / tempPairsArray.length).toFixed(5));
-    setAverageTurnaroundTime((sum2 / tempPairsArray.length).toFixed(5));
-    setAverageWaitingTime((sum3 / tempPairsArray.length).toFixed(5));
-    setUtilization(100 - (c1 / c).toFixed(4) * 100);
+    setAverageCompletionTime((sum1 / completion.length).toFixed(5));
+    setAverageTurnaroundTime((sum2 / completion.length).toFixed(5));
+    setAverageWaitingTime((sum3 / completion.length).toFixed(5));
+    setUtilization(100 - (c / tempPairsArray.length).toFixed(4) * 100);
     setFlag(true);
   };
 
@@ -230,7 +302,7 @@ const Sjf = () => {
   return (
     <>
       <div className="container mt-4">
-        <h1 className="text-center">Shortest Job First Scheduling</h1>
+        <h1 className="text-center">Shortest Remaining Time First (SRTF)</h1>
         <div className="content d-flex justify-content-center align-items-center flex-column gap-4">
           <div className="input d-flex justify-content-center align-items-center">
             <div className="field">Process :</div>
@@ -364,10 +436,12 @@ const Sjf = () => {
                 height: "40px",
                 border: "2px black solid",
                 marginLeft: "2px",
-                fontSize:"20px",
-                textAlign:"center"
+                textAlign: "center",
+                fontSize: "20px",
               }}
-            >0</div>
+            >
+              0
+            </div>
           </div>
           {boxes}
         </div>
@@ -376,4 +450,4 @@ const Sjf = () => {
   );
 };
 
-export default Sjf;
+export default Srtf;

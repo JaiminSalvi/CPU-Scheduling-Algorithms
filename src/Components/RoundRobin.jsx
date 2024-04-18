@@ -1,20 +1,20 @@
+/* eslint-disable no-constant-condition */
 /* eslint-disable no-unused-vars */
 import React, { useState } from "react";
 import { MdRemoveCircle } from "react-icons/md";
 
-const Sjf = () => {
+const Roundrobin = () => {
   const [tasks, setTasks] = useState([
-    { processId: "1", arrivalTime: "0", burstTime: "7" },
-    { processId: "2", arrivalTime: "1", burstTime: "5" },
-    { processId: "3", arrivalTime: "2", burstTime: "3" },
-    { processId: "4", arrivalTime: "3", burstTime: "1" },
-    { processId: "5", arrivalTime: "4", burstTime: "2" },
-    { processId: "6", arrivalTime: "5", burstTime: "1" },
-    { processId: "7", arrivalTime: "25", burstTime: "2" },
+    { processId: "1", arrivalTime: "0", burstTime: "5" },
+    { processId: "2", arrivalTime: "1", burstTime: "3" },
+    { processId: "3", arrivalTime: "2", burstTime: "1" },
+    { processId: "4", arrivalTime: "3", burstTime: "2" },
+    { processId: "5", arrivalTime: "4", burstTime: "3" },
   ]);
   const [processId, setProcessId] = useState("");
   const [arrivalTime, setArrivalTime] = useState("");
   const [burstTime, setBurstTime] = useState("");
+  const [timeQuantum, setTimeQuantum] = useState("");
   const [utilization, setUtilization] = useState("");
   const [flag, setFlag] = useState(false);
   const [averageTurnaroundTime, setAverageTurnaroundTime] = useState(null);
@@ -51,14 +51,6 @@ const Sjf = () => {
     setProcessId("");
     setArrivalTime("");
     setBurstTime("");
-    // setTasks([]);
-    // setFlag(false);
-    // setAverageTurnaroundTime(null);
-    // setAverageWaitingTime(null);
-    // setCompletionTimes([]);
-    // setTurnaroundTimes([]);
-    // setWaitingTimes([]);
-    // setIndex([]);
   };
 
   const getColorForProcess = (processId) => {
@@ -70,6 +62,16 @@ const Sjf = () => {
   };
 
   const runTask = () => {
+    if (timeQuantum === "") {
+      alert("Time Quantum should not be empty!");
+      return;
+    }
+    let burst_temp = [];
+    let arrrival_temp = [];
+    for (let i = 0; i < tasks.length; i++) {
+      burst_temp.push(parseInt(tasks[i].burstTime));
+      arrrival_temp.push(parseInt(tasks[i].arrivalTime));
+    }
     let sortedTasks = [...tasks].sort((a, b) => a.arrivalTime - b.arrivalTime); // Sort by burst time for SJF
     let visited = [];
     let queue = [];
@@ -83,102 +85,173 @@ const Sjf = () => {
       burst.push(parseInt(task.burstTime));
     });
     let tempPairsArray = [];
+
     let temp = [];
     temp.push(0);
-    for (let i = 0; i < process.length; i++) {
-      let p = -1;
-      let at = 1000000000;
-      let bt = 1000000000;
-      //   let temp = [];
-      let mini = 1000000000;
-      let incoming = temp[temp.length - 1];
-      //   console.log(temp);
-      let idx = -1;
-      for (let j = 0; j < process.length; j++) {
-        if (arrival[j] <= incoming && arrival[j] != -1) {
-          if (burst[j] < bt) {
-            p = process[j];
-            at = arrival[j];
-            bt = burst[j];
-            idx = j;
-          } else if (burst[j] === bt) {
-            if (at > arrival[j]) {
-              p = process[j];
-              at = arrival[j];
-              bt = burst[j];
-              idx = j;
-            } else if (at === arrival[j]) {
-              if (p > process[j]) {
-                p = process[j];
-                at = arrival[j];
-                bt = burst[j];
-                idx = j;
-              }
-            }
-          }
-        }
-        if (arrival[j] != -1) {
-          if (mini > arrival[j]) {
-            mini = arrival[j];
-          }
-        }
-      }
-      if (idx == -1) {
-        console.log("mini" + mini);
-        temp.push(mini);
-        tempPairsArray.push({ at: incoming, bt: mini - incoming, p: null });
-        i--;
+    let first = arrival[0];
+    while (true) {
+      if (first == 0) break;
+      if (first > timeQuantum) {
+        tempPairsArray.push({ at: 0, bt: timeQuantum, p: null });
+        first -= timeQuantum;
       } else {
-        console.log("one terminated------------------");
-        console.log(at, bt, p);
-        temp.push(bt + incoming);
-        // visited[] = 1;
-        arrival[idx] = -1;
-        process[idx] = -1;
-        burst[idx] = -1;
-        tempPairsArray.push({ at, bt, p });
+        tempPairsArray.push({ at: 0, bt: first, p: null });
+        break;
       }
     }
-    // console.log(temp);
-    console.log(temp);
+    queue.push({ at: arrival[0], bt: burst[0], p: process[0] });
+    let num = 0;
+    let arr = [];
+    arr.push(process[0]);
+    while (queue.length !== 0) {
+      let current = queue.shift();
+      for (let i = 0; i < process.length; i++) {
+        if (arrival[i] > current.at && arrival[i] <= current.at + timeQuantum) {
+          if (arr.includes(process[i])) {
+            continue;
+          } else {
+            queue.push({ at: arrival[i], bt: burst[i], p: process[i] });
+            arr.push(process[i]);
+          }
+        }
+      }
+      if (current.bt > timeQuantum) {
+        tempPairsArray.push({
+          at: current.at,
+          bt: parseInt(timeQuantum),
+          p: current.p,
+        });
+        queue.push({
+          at: current.at,
+          bt: current.bt - timeQuantum,
+          p: current.p,
+        });
+      } else {
+        tempPairsArray.push({ at: current.at, bt: current.bt, p: current.p });
+      }
+    }
     console.log(tempPairsArray);
+    // while (len < process.length) {
+    //   let p = -1;
+    //   let at = 1000000000;
+    //   let bt = 1000000000;
+    //   //   let temp = [];
+    //   let mini = 1000000000;
+    //   let incoming = temp[temp.length - 1];
+    //   let idx = -1;
+    //   //   console.log(temp);
+    //   for (let j = 0; j < process.length; j++) {
+    //     if (arrival[j] <= incoming && arrival[j] != -1) {
+    //       if (burst[j] < bt) {
+    //         p = process[j];
+    //         at = arrival[j];
+    //         bt = burst[j];
+    //         idx = j;
+    //       } else if (burst[j] == bt) {
+    //         if (at > arrival[j]) {
+    //           p = process[j];
+    //           at = arrival[j];
+    //           bt = burst[j];
+    //           idx = j;
+    //         } else if (at == arrival[j]) {
+    //           if (p > process[j]) {
+    //             p = process[j];
+    //             at = arrival[j];
+    //             bt = burst[j];
+    //             idx = j;
+    //           }
+    //         }
+    //       }
+    //     }
+    //     if (arrival[j] != -1) {
+    //       if (mini > arrival[j]) {
+    //         mini = arrival[j];
+    //       }
+    //     }
+    //   }
+    //   if (idx == -1) {
+    //     console.log("mini" + mini);
+    //     temp.push(incoming + 1);
+    //     tempPairsArray.push({ at: incoming, bt: 1, p: null });
+    //     // i--;
+    //   } else {
+    //     console.log("one terminated------------------");
+    //     console.log(at, bt, p);
+    //     if (burst[idx] >= parseInt(timeQuantum)) {
+    //       burst[idx] = burst[idx] - parseInt(timeQuantum);
+    //       temp.push(incoming + parseInt(timeQuantum));
+    //       tempPairsArray.push({ at, bt: parseInt(timeQuantum), p });
+    //     } else {
+    //       temp.push(incoming + burst[idx]);
+    //       tempPairsArray.push({ at, bt: burst[idx], p });
+    //       burst[idx] = -1;
+    //       arrival[idx] = -1;
+    //       process[idx] = -1;
+    //       len++;
+    //     }
+    //     // if (burst[idx] == -1) {
+    //     // visited[] = 1;
+    //     // }
+    //   }
+    // }
+    // console.log(temp);
+    // // console.log(tempPairsArray);
+    // console.log("burst time-----------");
+    // console.log(tempPairsArray);
     setPairsArray(tempPairsArray);
     let completion = [];
     let c = 0;
     let turn = [];
-    let c1 = 0;
+    let visited1 = [];
     for (let i = 0; i < tempPairsArray.length; i++) {
-      if (tempPairsArray[i].p === null) {
-        c1 += tempPairsArray[i].bt;
-      }
       c += tempPairsArray[i].bt;
-      completion.push(c);
+    }
+    console.log(c);
+    for (let i = tempPairsArray.length - 1; i >= 0; i--) {
+      if (tempPairsArray[i].p === null) {
+        c -= tempPairsArray[i].bt;
+        continue;
+      } else {
+        if (visited1.includes(tempPairsArray[i].p)) {
+          c -= tempPairsArray[i].bt;
+          continue;
+        } else {
+          completion[tempPairsArray[i].p - 1] = c;
+          visited1.push(tempPairsArray[i].p);
+          c -= tempPairsArray[i].bt;
+        }
+      }
     }
     let pro = [];
     let wait = [];
-    for (let i = 0; i < tempPairsArray.length; i++) {
-      turn.push(completion[i] - tempPairsArray[i].at);
-      pro[tempPairsArray[i].p] = i;
-      wait.push(completion[i] - tempPairsArray[i].at - tempPairsArray[i].bt);
+    console.log("burst time-----------");
+    console.log(tempPairsArray);
+    console.log(completion);
+    for (let i = 0; i < completion.length; i++) {
+      turn.push(completion[i] - arrrival_temp[i]);
+      pro[i + 1] = i;
+      wait.push(completion[i] - arrrival_temp[i] - burst_temp[i]);
     }
     let sum1 = 0,
       sum2 = 0,
       sum3 = 0;
-    for (let i = 0; i < tempPairsArray.length; i++) {
+    for (let i = 0; i < completion.length; i++) {
       sum1 += completion[i];
       sum2 += turn[i];
       sum3 += wait[i];
     }
 
-    console.log(completion);
+    // console.log(completion);
+    console.log(turn);
+    console.log(wait);
     setCompletionTimes(completion);
     setIndex(pro);
     setTurnaroundTimes(turn);
     setWaitingTimes(wait);
-    setAverageCompletionTime((sum1 / tempPairsArray.length).toFixed(5));
-    setAverageTurnaroundTime((sum2 / tempPairsArray.length).toFixed(5));
-    setAverageWaitingTime((sum3 / tempPairsArray.length).toFixed(5));
-    setUtilization(100 - (c1 / c).toFixed(4) * 100);
+    setAverageCompletionTime((sum1 / completion.length).toFixed(5));
+    setAverageTurnaroundTime((sum2 / completion.length).toFixed(5));
+    setAverageWaitingTime((sum3 / completion.length).toFixed(5));
+    setUtilization(100 - (c / tempPairsArray.length).toFixed(4) * 100);
     setFlag(true);
   };
 
@@ -230,7 +303,7 @@ const Sjf = () => {
   return (
     <>
       <div className="container mt-4">
-        <h1 className="text-center">Shortest Job First Scheduling</h1>
+        <h1 className="text-center">Round Robin (RR)</h1>
         <div className="content d-flex justify-content-center align-items-center flex-column gap-4">
           <div className="input d-flex justify-content-center align-items-center">
             <div className="field">Process :</div>
@@ -275,6 +348,18 @@ const Sjf = () => {
             <button className="btn btn-primary" onClick={handleReset}>
               Reset
             </button>
+          </div>
+          <div className="input d-flex justify-content-center align-items-center">
+            <div className="field">Time Quantum : </div>
+            <div className="field-input">
+              <input
+                type="number"
+                id="TQ"
+                value={timeQuantum}
+                placeholder="Enter the Time Quantum "
+                onChange={(e) => setTimeQuantum(e.target.value)}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -364,10 +449,12 @@ const Sjf = () => {
                 height: "40px",
                 border: "2px black solid",
                 marginLeft: "2px",
-                fontSize:"20px",
-                textAlign:"center"
+                textAlign: "center",
+                fontSize: "20px",
               }}
-            >0</div>
+            >
+              0
+            </div>
           </div>
           {boxes}
         </div>
@@ -376,4 +463,4 @@ const Sjf = () => {
   );
 };
 
-export default Sjf;
+export default Roundrobin;

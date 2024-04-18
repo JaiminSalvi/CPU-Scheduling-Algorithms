@@ -5,12 +5,13 @@ import { MdRemoveCircle } from "react-icons/md";
 const Fcfs = () => {
   const [tasks, setTasks] = useState([
     { processId: "1", arrivalTime: "0", burstTime: "4" },
-    { processId: "2", arrivalTime: "8", burstTime: "2" },
+    { processId: "2", arrivalTime: "10", burstTime: "2" },
     { processId: "3", arrivalTime: "15", burstTime: "7" },
   ]);
   const [processId, setProcessId] = useState("");
   const [arrivalTime, setArrivalTime] = useState("");
   const [burstTime, setBurstTime] = useState("");
+  const [utilization, setUtilization] = useState("");
   const [flag, setFlag] = useState(false);
   const [averageCompletionTime, setAverageCompletionTime] = useState(null);
   const [averageTurnaroundTime, setAverageTurnaroundTime] = useState(null);
@@ -82,7 +83,6 @@ const Fcfs = () => {
       const pair = { process: task.processId, burstTime: task.burstTime };
       tempPairsArray.push(pair);
       completionTimesArr.push(completionTime);
-      c += completionTime;
       indexArr.push(parseInt(task.processId) - 1);
       turnaroundTimesArr.push(completionTime - parseInt(task.arrivalTime));
       waitingTimesArr.push(
@@ -100,11 +100,22 @@ const Fcfs = () => {
     for (let i = 0; i < indexArr.length; i++) {
       arr[indexArr[i]] = i;
     }
-    console.log(arr);
-    console.log(sortedTasks);
-    console.log(completionTimesArr);
-    console.log(turnaroundTimesArr);
-    console.log(indexArr);
+    let idle_time = 0;
+    for (let i = 0; i < tempPairsArray.length; i++) {
+      c += parseInt(tempPairsArray[i].burstTime);
+      if (tempPairsArray[i].process === null) {
+        idle_time += parseInt(tempPairsArray[i].burstTime);
+      }
+    }
+
+    // console.log(arr);
+    console.log(tempPairsArray);
+    console.log(c);
+    // console.log(sortedTasks.length);
+    // console.log((idle_time / sortedTasks.length).toFixed(4) * 100);
+    // console.log(completionTimesArr);
+    // console.log(turnaroundTimesArr);
+    // console.log(indexArr);
     setCompletionTimes(completionTimesArr);
     setTurnaroundTimes(turnaroundTimesArr);
     setWaitingTimes(waitingTimesArr);
@@ -112,6 +123,7 @@ const Fcfs = () => {
     setAverageCompletionTime((c / tasks.length).toFixed(5));
     setAverageTurnaroundTime((totalTurnaroundTime / tasks.length).toFixed(5));
     setAverageWaitingTime((totalWaitingTime / tasks.length).toFixed(5));
+    setUtilization((100 - (idle_time / c).toFixed(4) * 100).toFixed(4));
     setFlag(true);
     // handleClick();
   };
@@ -129,6 +141,7 @@ const Fcfs = () => {
   const handleClick = async () => {
     console.log(pairsArray);
     let tempBoxes = [];
+    let num = 1;
     for (let i = 0; i < pairsArray.length; i++) {
       const pair = pairsArray[i];
       const color = getColorForProcess(pair.process); // Get color for the current process
@@ -154,7 +167,7 @@ const Fcfs = () => {
                 ) : (
                   <div style={boxStyle}>{`P${pair.process}`}</div>
                 )}
-                <div style={boxStyle}>1</div>
+                <div style={boxStyle}>{num}</div>
               </div>
             );
             // Add the new box element to tempBoxes
@@ -165,6 +178,7 @@ const Fcfs = () => {
             resolve();
           }, 1000); // Adjusted delay for each box
         });
+        num++;
       }
     }
   };
@@ -277,6 +291,7 @@ const Fcfs = () => {
               <p>Average Completion Time = {averageCompletionTime}</p>
               <p>Average Turn Around Time = {averageTurnaroundTime}</p>
               <p>Average Waiting Time = {averageWaitingTime}</p>
+              <p>CPU Utilization = {utilization}%</p>
             </div>
           </div>
         )}
@@ -310,8 +325,12 @@ const Fcfs = () => {
                 height: "40px",
                 border: "2px black solid",
                 marginLeft: "2px",
+                textAlign: "center",
+                fontSize: "20px",
               }}
-            ></div>
+            >
+              0
+            </div>
           </div>
           {boxes}
         </div>
